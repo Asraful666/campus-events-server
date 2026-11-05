@@ -3,21 +3,33 @@ import { mongodbAdapter } from "@better-auth/mongo-adapter";
 import { jwt } from "better-auth/plugins";
 
 export function createAuth(db) {
-  if (!process.env.BETTER_AUTH_SECRET) {
+  const secret = process.env.BETTER_AUTH_SECRET;
+  const authURL = process.env.BETTER_AUTH_URL?.replace(/\/+$/, "");
+  const clientURL = process.env.CLIENT_URL?.replace(/\/+$/, "");
+
+  if (!secret) {
     throw new Error("BETTER_AUTH_SECRET is missing");
+  }
+
+  if (!authURL) {
+    throw new Error("BETTER_AUTH_URL is missing");
+  }
+
+  if (!clientURL) {
+    throw new Error("CLIENT_URL is missing");
   }
 
   return betterAuth({
     appName: "CampusEvents",
 
-    baseURL: process.env.BETTER_AUTH_URL,
-    secret: process.env.BETTER_AUTH_SECRET,
+    baseURL: authURL,
+    basePath: "/api/auth",
+    secret,
 
     database: mongodbAdapter(db),
-trustedOrigins: [
-  "http://localhost:3000",
-  "https://campus-events-client.vercel.app",
-],
+
+    trustedOrigins: [clientURL],
+
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 8,
@@ -25,13 +37,13 @@ trustedOrigins: [
     },
 
     plugins: [
-  jwt({
-    jwt: {
-      issuer: process.env.BETTER_AUTH_URL,
-      audience: process.env.BETTER_AUTH_URL,
-      expirationTime: "5m",
-    },
-  }),
-],
+      jwt({
+        jwt: {
+          issuer: authURL,
+          audience: authURL,
+          expirationTime: "5m",
+        },
+      }),
+    ],
   });
 }
