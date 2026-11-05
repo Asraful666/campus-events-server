@@ -14,11 +14,10 @@ export function createAuth(db) {
     secret: process.env.BETTER_AUTH_SECRET,
 
     database: mongodbAdapter(db),
-
-    trustedOrigins: [
-      process.env.CLIENT_URL || "http://localhost:3000",
-    ],
-
+trustedOrigins: [
+  "http://localhost:3000",
+  "https://campus-events-client.vercel.app",
+],
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 8,
